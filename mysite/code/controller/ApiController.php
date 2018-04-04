@@ -4,15 +4,23 @@ class ApiController extends \SilverStripe\Control\Controller
 {
     public function index() {
         $code = $this->getRequest()->param('code');
-
-        $this->getResponse()->addHeader('Access-Control-Allow-Origin', '*');
-        $this->getResponse()->addHeader('Content-type', 'application/json');
+        $response = $this->getResponse();
 
         if ($this->getRequest()->isPOST()) {
-            return $this->createTest();
+            $response = $this->createTest();
         } elseif ($this->getRequest()->isGET()) {
-            return $this->retrieveTest($code);
+            $response = $this->retrieveTest($code);
         }
+
+        //\SilverStripe\Core\Injector\Injector::inst()->get(\Psr\Log\LoggerInterface::class)->info("index");
+
+        $response->addHeader('Content-type', 'application/json');
+        $response->addHeader('Access-Control-Allow-Origin', $this->getRequest()->getHeader('Origin'));
+        $response->addHeader('Access-Control-Allow-Headers', '*');
+        $response->addHeader('Access-Control-Allow-Methods', '*');
+        $response->addHeader('Access-Control-Max-Age', '86400');
+
+        return $response;
     }
 
     protected function retrieveTest($code) {
