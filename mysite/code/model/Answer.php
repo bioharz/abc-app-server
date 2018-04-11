@@ -12,6 +12,10 @@ class Answer extends \SilverStripe\ORM\DataObject
         'Question' => 'Question'
     ];
 
+    private static $belongs_many_many = [
+        'TestExecutionAnswers' => 'TestExecutionAnswer'
+    ];
+
     private static $summary_fields = [
         'Answer', 'Correct'
     ];

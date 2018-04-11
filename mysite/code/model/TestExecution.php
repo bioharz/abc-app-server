@@ -16,6 +16,10 @@ class TestExecution extends DataObject
         'Test' => 'Test'
     ];
 
+    private static $has_many = [
+        'TestExecutionAnswers' => 'TestExecutionAnswer'
+    ];
+
     /**
      * @param $code
      * @return TestExecution | null
@@ -49,6 +53,31 @@ class TestExecution extends DataObject
         return null;
     }
 
+    public function saveQuestionWithAnswers($questionId, array $answerIds) {
+        $answer = TestExecutionAnswer::get()
+            ->filter([
+                'TestExecutionID' => $this->ID ,
+                'TestExecutionQuestionID' => $questionId
+            ])->first();
+
+        if (!$answer) {
+            $answer = TestExecutionAnswer::create();
+            $answer->TestExecutionID = $this->ID;
+            $answer->TestExecutionQuestionID = $questionId;
+            $answer->write();
+        } else {
+            $answer->TestExecutionAnswers()->removeAll();
+        }
+
+        foreach ($answerIds as $answerId) {
+            $a = Answer::get()->byID($answerId);
+
+            if ($a) {
+                $answer->TestExecutionAnswers()->add($a);
+            }
+        }
+    }
+
     protected function onBeforeWrite()
     {
         parent::onBeforeWrite();
@@ -64,7 +93,6 @@ class TestExecution extends DataObject
 
         $fields->dataFieldByName('Code')->setDisabled(true);
         $fields->dataFieldByName('Person')->setDisabled(true);
-        // $fields->dataFieldByName('Test')->setDisabled(true);
 
         return $fields;
     }

@@ -10,9 +10,9 @@ class ApiController extends \SilverStripe\Control\Controller
             $response = $this->createTest();
         } elseif ($this->getRequest()->isGET()) {
             $response = $this->retrieveTest($code);
+        } elseif ($this->getRequest()->isPUT()) {
+            $response = $this->saveTest($code);
         }
-
-        //\SilverStripe\Core\Injector\Injector::inst()->get(\Psr\Log\LoggerInterface::class)->info("index");
 
         $response->addHeader('Content-type', 'application/json');
         $response->addHeader('Access-Control-Allow-Origin', $this->getRequest()->getHeader('Origin'));
@@ -21,6 +21,25 @@ class ApiController extends \SilverStripe\Control\Controller
         $response->addHeader('Access-Control-Max-Age', '86400');
 
         return $response;
+    }
+
+    protected function saveTest($code) {
+        $response = [];
+
+        try {
+            $testExecution = TestExecution::findTestExecutionByCode($code);
+            $answers = json_decode($this->getRequest()->getBody(), true);
+
+            foreach ($answers as $questionId => $answerIds) {
+                $testExecution->saveQuestionWithAnswers($questionId, $answerIds);
+            }
+        } catch (\Exception $e) {
+            $this->getResponse()->setStatusCode(400);
+            $response['error'] = 'Wrong or missing data';
+        }
+
+        $this->getResponse()->setBody(json_encode($response));
+        return $this->getResponse();
     }
 
     protected function retrieveTest($code) {
@@ -42,7 +61,6 @@ class ApiController extends \SilverStripe\Control\Controller
         }
 
         $this->getResponse()->setBody(json_encode($response));
-
         return $this->getResponse();
     }
 
